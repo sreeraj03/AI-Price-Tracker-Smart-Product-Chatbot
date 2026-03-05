@@ -182,12 +182,6 @@ Add or remove products from the dataset.
 
 ---
 
-# 👨‍💻 Author
 
-Developed by **[Your Name]**
 
----
 
-# ⭐ If you like this project
-
-Give the repository a **star ⭐ on GitHub**.
