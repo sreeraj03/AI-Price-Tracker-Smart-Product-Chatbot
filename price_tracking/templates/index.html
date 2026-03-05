@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Price Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-5xl mx-auto p-6">
+
+<h1 class="text-3xl font-bold text-center mb-6">
+AI Price Tracker
+</h1>
+
+<div id="chatBox" class="bg-white shadow rounded p-4 h-[450px] overflow-y-auto mb-4">
+    <div class="text-gray-500 text-sm">🤖 Ask me about products...</div>
+</div>
+
+<form id="chatForm" class="flex gap-2">
+    <input name="message" class="flex-1 border p-2 rounded"
+           placeholder="Example: compare samsung iphone">
+    <button class="bg-blue-500 text-white px-4 rounded">
+        Send
+    </button>
+</form>
+
+</div>
+
+<script>
+const chatBox = document.getElementById("chatBox");
+
+function addUserMessage(msg){
+    chatBox.innerHTML += `
+    <div class="text-right mb-2">
+        <span class="bg-blue-500 text-white px-3 py-2 rounded inline-block">
+            ${msg}
+        </span>
+    </div>`;
+}
+
+function addBotMessage(content){
+    chatBox.innerHTML += `
+    <div class="text-left mb-3">
+        <div class="bg-gray-200 px-3 py-2 rounded inline-block">
+            ${content}
+        </div>
+    </div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+document.getElementById("chatForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+    const userMessage = formData.get("message");
+
+    addUserMessage(userMessage);
+
+    const response = await fetch("/chat", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    if(data.type === "text"){
+        addBotMessage(data.message);
+        return;
+    }
+
+    if(data.type === "table"){
+        let table = `
+        <table class="table-auto border text-sm">
+        <thead>
+        <tr>
+            <th class="border p-1">Name</th>
+            <th class="border p-1">Category</th>
+            <th class="border p-1">Final Price</th>
+            <th class="border p-1">Rating</th>
+            <th class="border p-1">Location</th>
+            <th class="border p-1">Platform</th>
+        </tr>
+        </thead><tbody>`;
+
+        data.data.forEach(p => {
+            table += `
+            <tr>
+                <td class="border p-1">${p.Product_Name}</td>
+                <td class="border p-1">${p.Category}</td>
+                <td class="border p-1">${p.Final_Price}</td>
+                <td class="border p-1">${p.Rating}</td>
+                <td class="border p-1">${p.Location}</td>
+                <td class="border p-1">${p.Platform}</td>
+            </tr>`;
+        });
+
+        table += "</tbody></table>";
+        addBotMessage(table);
+    }
+
+    if(data.type === "compare"){
+        let cards = `<div class="grid grid-cols-2 gap-4">`;
+
+        data.data.forEach(p => {
+            cards += `
+            <div class="border rounded p-3 bg-white shadow">
+                <h3 class="font-bold text-lg">${p.Product_Name}</h3>
+                <p>Category: ${p.Category}</p>
+                <p>Price: ${p.Final_Price}</p>
+                <p>Rating: ⭐ ${p.Rating}</p>
+                <p>Location: ${p.Location}</p>
+                <p>Platform: ${p.Platform}</p>
+            </div>`;
+        });
+
+        cards += `</div>`;
+        addBotMessage(cards);
+    }
+
+    this.reset();
+});
+</script>
+
+</body>
+</html>
